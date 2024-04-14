@@ -47,10 +47,12 @@
     "typescript": "^5.1.6"
   },
   "dependencies": {
-    "@openzeppelin/contracts": "^4.8.1",
+    "@account-abstraction/contracts": "^0.6.0",
+    "@openzeppelin/contracts": "^5.0.2",
     "@typechain/ethers-v6": "^0.5.1",
     "dotenv": "^16.0.3",
     "envfile": "^6.18.0",
+    "forge-std": "^1.1.2",
     "qrcode": "^1.5.1"
   }
 }
