@@ -55,8 +55,8 @@ export default function Page({ params }: { params: { address: string } }) {
       // const receipt = await V06.Bundler.GetUserOperationReceiptWithEthClient(userOpHash, publicClientStackUp as any);
       setIsProcessing(false);
 
-      const userTxs: any[] = usersTxData[destinationAddress.slice(0, 10)]
-        ? usersTxData[destinationAddress.slice(0, 10)]
+      const userTxs: any[] = usersTxData[destinationAddress.slice(0, 10).toLowerCase()]
+        ? usersTxData[destinationAddress.slice(0, 10).toLowerCase()]
         : [];
       userTxs.push({
         amount: amount,
@@ -64,7 +64,7 @@ export default function Page({ params }: { params: { address: string } }) {
         hash: userOpHash,
       });
 
-      setUsersTxData({ [destinationAddress.slice(0, 10)]: [...userTxs] });
+      setUsersTxData({ [destinationAddress.slice(0, 10).toLowerCase()]: [...userTxs] });
       router.push(`/completed/${userOpHash}`);
     } catch (error) {
       setIsProcessing(false);

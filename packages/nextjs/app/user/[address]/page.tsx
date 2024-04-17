@@ -41,8 +41,7 @@ export default function Page({ params }: { params: { address: string } }) {
   );
   const ethPrice = useNativeCurrencyPrice();
 
-  const userAddress = String(params.address).slice(0, 10);
-
+  const userAddress = String(params.address).slice(0, 10).toLowerCase();
   const userTx: any[] = usersTxData[userAddress] ? usersTxData[userAddress] : [];
 
   return (

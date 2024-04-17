@@ -26,7 +26,6 @@ export default function Page() {
 
   const saveAddress = async () => {
     const ensName = await publicClientMainnet.getEnsName({ address: address as string });
-    console.log(`n-🔴 => saveAddress => ensName:`, ensName);
     setContacts([...contacts, { address, ensName }]);
     notification.success("address saved !");
     setAddress("");
