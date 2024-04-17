@@ -97,3 +97,5 @@ export const ENTRYPOINT_ABI = [
     type: "function",
   },
 ] as const;
+
+export const BASE_PAY_DATA = "basePay";

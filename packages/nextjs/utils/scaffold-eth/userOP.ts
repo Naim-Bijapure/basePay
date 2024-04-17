@@ -3,6 +3,7 @@ import { ECDSASigValue } from "@peculiar/asn1-ecc";
 import { AsnParser } from "@peculiar/asn1-schema";
 import { base64URLStringToBuffer, startAuthentication } from "@simplewebauthn/browser";
 import { GenerateAuthenticationOptionsOpts } from "@simplewebauthn/server";
+import { randomBytes } from "crypto";
 import { EntryPoint } from "userop/dist/v06";
 import {
   Hex,
@@ -14,6 +15,7 @@ import {
   toHex,
   zeroAddress,
 } from "viem";
+import { mainnet } from "viem/chains";
 import scaffoldConfig from "~~/scaffold.config";
 import { generateLoginAuth } from "~~/services/webAuthn";
 import {
@@ -28,6 +30,12 @@ export const relayer = "0x18216371e74C9f1820817131911c243241b56d25"; // any rand
 export const ENTRYPOINT_ADDRESS: Hex = EntryPoint.DEFAULT_ADDRESS;
 
 // public  clients
+
+export const publicClientMainnet = createPublicClient({
+  chain: mainnet,
+  transport: http(),
+});
+
 export const publicClient = createPublicClient({
   chain: scaffoldConfig.targetNetworks[0],
   transport: http(),
@@ -78,8 +86,6 @@ export async function getUserOpHash(userOp: UserOperation): Promise<Hex> {
 export async function getSignature(msgToSign: Hex, keyId: Hex): Promise<Hex> {
   //   const credentials: P256Credential = (await WebAuthn.get(msgToSign)) as P256Credential;
   const credentials = await signWebAuthn(msgToSign);
-
-  console.log(`n-🔴 => getSignature => credentials?.rawId:`, credentials?.rawId);
   if (credentials?.rawId !== keyId) {
     throw new Error(
       "Incorrect passkeys used for tx signing. Please sign the transaction with the correct logged-in account",
@@ -175,8 +181,6 @@ export async function signWebAuthn(challenge?: Hex): Promise<P256Credential | nu
 
   const decodedClientData = utf8Decoder.decode(base64URLStringToBuffer(cred.response.clientDataJSON as any));
   const clientDataObj = JSON.parse(decodedClientData);
-  console.log(`n-🔴 => signWebAuthn => clientDataObj:`, clientDataObj);
-
   const authenticatorData = toHex(new Uint8Array(base64URLStringToBuffer(cred.response.authenticatorData as any)));
   const signature = parseSignature(new Uint8Array(base64URLStringToBuffer(cred?.response?.signature as any)));
 
@@ -228,3 +232,5 @@ export function parseSignature(signature: Uint8Array): P256Signature {
 }
 
 export const emptyHex = toHex(new Uint8Array(0));
+
+export const mockBytes32 = "0x" + randomBytes(32).toString("hex");

@@ -29,13 +29,10 @@ export type BundlerType = {
   initCode: Hex;
   initCodeGas: Hex;
   buildUserOP: BuildUserOPFunction;
+  calculateWalletAddress: (pubKey: readonly [Hex, Hex]) => Promise<Hex | undefined>;
 };
 
 export const useBundler = ({ publicKey }: UseBundlerType): BundlerType => {
-  // const [initCode, setInitCode] = useState<any>();
-  // const [initCodeGas, setInitCodeGas] = useState<any>();
-  // const [nonce, setNonce] = useState<any>();
-
   const initCodeRef = useRef<any>();
   const initCodeGasRef = useRef<any>();
   const nonceRef = useRef<any>();
@@ -90,18 +87,19 @@ export const useBundler = ({ publicKey }: UseBundlerType): BundlerType => {
   const fetchWalletInits = async (address: string) => {
     try {
       const byteCode = await publicClient.getBytecode({ address });
-      const initCodeGas = BigInt(0);
+      // const initCodeGas = BigInt(0);
       if (byteCode !== undefined) {
-        initCodeRef.current = byteCode as any;
-        initCodeGasRef.current = initCodeGas;
+        // initCodeRef.current = byteCode as any;
+        // initCodeGasRef.current = initCodeGas;
+
+        initCodeRef.current = toHex(new Uint8Array(0));
+        initCodeGasRef.current = BigInt(0);
       }
 
       if (byteCode === undefined) {
         const { initCode, initCodeGas } = await _createInitCode([publicKey.x, publicKey.y]);
-        // initCodeRef.current = initCode as any;
-        // initCodeGasRef.current = initCodeGas;
-        initCodeRef.current = toHex(new Uint8Array(0));
-        initCodeGasRef.current = BigInt(0);
+        initCodeRef.current = initCode as any;
+        initCodeGasRef.current = initCodeGas;
       }
 
       const nonce = await _getNonce(walletAddress as Hex);
@@ -171,12 +169,11 @@ export const useBundler = ({ publicKey }: UseBundlerType): BundlerType => {
         ...DEFAULT_USER_OP,
         sender: walletAddress as Hex,
         nonce: nonceRef.current,
-        // initCode: initCodeRef.current,
+        initCode: initCodeRef.current,
         callData,
         maxFeePerGas,
         maxPriorityFeePerGas,
       };
-      console.log(`n-🔴 => useBundler => userOp:`, userOp);
 
       const { callGasLimit, verificationGasLimit, preVerificationGas } = await estimateUserOperationGas({
         userOp: toParams(userOp),
@@ -201,11 +198,25 @@ export const useBundler = ({ publicKey }: UseBundlerType): BundlerType => {
       const msgToSign = encodePacked(["uint8", "uint48", "bytes32"], [1, 0, userOpHash]);
       const signature = await getSignature(msgToSign, keyId);
 
+      console.log(`n-🔴 => useBundler => userOP`, toParams({ ...userOp, signature }));
       return toParams({ ...userOp, signature });
     } catch (error: any) {
       console.error("Error fetching wallet inits", error);
       return error;
     }
+  };
+
+  const calculateWalletAddress = async (pubKey: readonly [Hex, Hex]): Promise<Hex | undefined> => {
+    if (simpleAccountFactoryData?.address) {
+      const address = await publicClient.readContract({
+        address: simpleAccountFactoryData?.address,
+        abi: simpleAccountFactoryData?.abi,
+        functionName: "getAddress",
+        args: [[...(pubKey as any)]] as any,
+      });
+      return address as Hex;
+    }
+    return undefined;
   };
 
   // use effects
@@ -219,5 +230,6 @@ export const useBundler = ({ publicKey }: UseBundlerType): BundlerType => {
     initCode: initCodeRef.current,
     initCodeGas: initCodeGasRef.current,
     buildUserOP,
+    calculateWalletAddress,
   };
 };

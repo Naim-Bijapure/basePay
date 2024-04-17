@@ -1,8 +1,8 @@
 import { Redis } from "@upstash/redis";
 
 export const redis = new Redis({
-  url: process.env.UPSTASH_URL as string,
-  token: process.env.UPSTASH_TOKEN as string,
+  url: process.env.NEXT_PUBLIC_UPSTASH_URL as string,
+  token: process.env.NEXT_PUBLIC_UPSTASH_TOKEN as string,
 });
 
 // await redis.hset(TX_COLLECTION_NAME, {

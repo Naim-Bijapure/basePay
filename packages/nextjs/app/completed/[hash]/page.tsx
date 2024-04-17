@@ -10,7 +10,7 @@ export default function Page({ params }: { params: { hash: string } }) {
   const { targetNetwork } = useTargetNetwork();
 
   return (
-    <div className="flex flex-col items-start h-screen">
+    <div className="flex flex-col items-start h-screen lg:w-1/2 lg:ml-[25%]">
       <div>
         <button
           className="btn btn-sm btn-circle btn-ghost m-5"
@@ -30,7 +30,7 @@ export default function Page({ params }: { params: { hash: string } }) {
             ></path>
           </svg>
           <div className="text-center">
-            <h3 className="md:text-2xl text-base text-gray-900 font-semibold text-center">Payment Done!</h3>
+            <h3 className="md:text-2xl text-base  font-semibold text-center">Payment Done!</h3>
             <p className=" my-2">Thank you for completing your secure online payment.</p>
             <p> Have a great day! </p>
           </div>
@@ -41,7 +41,7 @@ export default function Page({ params }: { params: { hash: string } }) {
         <button
           className="btn btn-success"
           onClick={() => {
-            window.open(`${targetNetwork.blockExplorers?.default.url}/tx/${params.hash}`, "_blank");
+            window.open(`${targetNetwork.blockExplorers?.default.url}/op/${params.hash}`, "_blank");
           }}
         >
           View transaction

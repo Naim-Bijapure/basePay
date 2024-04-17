@@ -3,35 +3,50 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Address } from "../../../components/scaffold-eth";
+import { useLocalStorage } from "usehooks-ts";
 import { ArrowLongLeftIcon as BackIcon, ArrowUpRightIcon as ViewTxIcon } from "@heroicons/react/24/outline";
+import { useNativeCurrencyPrice } from "~~/hooks/scaffold-eth";
 import { useTargetNetwork } from "~~/hooks/scaffold-eth/useTargetNetwork";
 
-const Tx_MOCK_DATA = [
-  {
-    amount: "0.1",
-    date: "2021-10-10 10:10:10",
-    hash: "0xc71dfa63008725e1d9c3a2ca57072cafe20d59fbd204f949862b2db40fb2b321",
-  },
-  {
-    amount: "0.1",
-    date: "2021-10-10 10:10:10",
-    hash: "0xc71dfa63008725e1d9c3a2ca57072cafe20d59fbd204f949862b2db40fb2b321",
-  },
-  {
-    amount: "0.1",
-    date: "2021-10-10 10:10:10",
-    hash: "0xc71dfa63008725e1d9c3a2ca57072cafe20d59fbd204f949862b2db40fb2b321",
-  },
-];
+// const Tx_MOCK_DATA = [
+//   {
+//     amount: "0.1",
+//     date: "2021-10-10 10:10:10",
+//     hash: "0xc71dfa63008725e1d9c3a2ca57072cafe20d59fbd204f949862b2db40fb2b321",
+//   },
+//   {
+//     amount: "0.1",
+//     date: "2021-10-10 10:10:10",
+//     hash: "0xc71dfa63008725e1d9c3a2ca57072cafe20d59fbd204f949862b2db40fb2b321",
+//   },
+//   {
+//     amount: "0.1",
+//     date: "2021-10-10 10:10:10",
+//     hash: "0xc71dfa63008725e1d9c3a2ca57072cafe20d59fbd204f949862b2db40fb2b321",
+//   },
+// ];
 
 export default function Page({ params }: { params: { address: string } }) {
   const router = useRouter();
-  const [userTx, setUserTx] = useState<{ amount: string; date: string; hash: string }[]>([...Tx_MOCK_DATA]);
-
   const { targetNetwork } = useTargetNetwork();
 
+  let usersTxDataLocalStorage = undefined;
+
+  if (typeof window !== "undefined") {
+    usersTxDataLocalStorage = JSON.parse(localStorage.getItem("usersTxData") as any);
+  }
+  const [usersTxData, setUsersTxData] = useLocalStorage<any>(
+    "usersTxData",
+    usersTxDataLocalStorage ? { ...usersTxDataLocalStorage } : {},
+  );
+  const ethPrice = useNativeCurrencyPrice();
+
+  const userAddress = String(params.address).slice(0, 10);
+
+  const userTx: any[] = usersTxData[userAddress] ? usersTxData[userAddress] : [];
+
   return (
-    <div className="flex flex-col items-start justify-center h-screen">
+    <div className="flex flex-col items-start justify-center h-screen lg:w-1/2 lg:ml-[25%]">
       <div className="w-full">
         <div className="navbar bg-base-100">
           <div className="flex-none">
@@ -66,15 +81,22 @@ export default function Page({ params }: { params: { address: string } }) {
           </div>
         </div>
       </div>
-      <div className="flex-grow self-end">
-        {userTx && (
-          <div className="flex flex-col items-end my-2 ">
+
+      {userTx.length === 0 && (
+        <div className="self-center absolute">
+          <span className="text-gray-400 ">Send your first payment</span>
+        </div>
+      )}
+
+      <div className="flex-grow self-end w-full overflow-y-auto">
+        {userTx.length > 0 && (
+          <div className="flex flex-col items-end my-2 w-full- border-2- ">
             {userTx.map((item, index) => (
               <div
                 key={index}
-                className="m-2"
+                className="m-2  w-1/2"
                 onClick={() => {
-                  window.open(`${targetNetwork.blockExplorers?.default.url}/tx/${item.hash}`, "_blank");
+                  window.open(`${targetNetwork.blockExplorers?.default.url}/op/${item.hash}`, "_blank");
                 }}
               >
                 <div className="card bg-base-300 shadow-xl">
@@ -83,10 +105,10 @@ export default function Page({ params }: { params: { address: string } }) {
                       <ViewTxIcon width={10} />
                     </button>
 
-                    {/* <button className="btn btn-xs btn-primary"></button> */}
-                    <div className="text-xl">{item.amount} eth</div>
-                    <div className="text-xs">{item.date}</div>
-                    <div className="text-xs text-success">paid</div>
+                    <div className="text-2xl">${(Number(item?.amount) * ethPrice).toFixed(4)}</div>
+                    <div className="text-xs">{Number(item?.amount).toFixed(5)} eth</div>
+                    <div className="text-xs text-gray-500">{item.date}</div>
+                    <div className="text-xs text-success">Paid</div>
                   </div>
                 </div>
               </div>
@@ -94,17 +116,18 @@ export default function Page({ params }: { params: { address: string } }) {
           </div>
         )}
       </div>
+
       <div className="w-full">
         <div className="flex justify-end border-t-2  p-2 border-t-gray-600 shadow">
           <button
-            className="btn btn-primary btn-sm mx-2"
+            className="btn btn-primary btn-md mx-2"
             onClick={() => {
               router.push(`/pay/${params.address}`);
             }}
           >
             Pay
           </button>
-          <button className="btn btn-secondary btn-sm tooltip tooltip-info" data-tip="coming soon">
+          <button className="btn btn-secondary btn-md tooltip tooltip-info" data-tip="coming soon">
             Request
           </button>
         </div>
